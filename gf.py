@@ -1,120 +1,190 @@
 import numpy as np
-"""
-Малоян Нарек 327
-Пишу на питоне впервые. Я слышал, что это удобный язык, но чтобы настолько.
-Cпасибо, что открыли глаза.
-"""
+
 
 def gen_pow_matrix(primpoly):
-	# q - степень многочлена. Чтобы узнать, надо определить количество
-	# элементов в двоичном представлении числа primpoly
-	q = np.floor(np.log2(primpoly)).astype(int)
+    # q - степень многочлена. Чтобы узнать, надо определить количество
+    # элементов в двоичном представлении числа primpoly
+    q = np.floor(np.log2(primpoly)).astype(int)
 
-	# res - матрица соответствия, размера (2^q - 1)x2
-	res = np.zeros((2 ** q - 1, 2), dtype=np.int)
+    # res - матрица соответствия, размера (2^q - 1)x2
+    res = np.zeros((2 ** q - 1, 2), dtype = np.int)
 
-	# alpha - примитивный элемент
-	alpha = 2
+    # alpha - примитивный элемент
+    alpha = 2
 
-	for i in range(1, res.shape[0] + 1):
-		# соответствие десятичного числа со степенью элемента
-		res[alpha - 1, 0] = i
-		# соответвие степени элемента с десятичным числом
-		res[i - 1, 1] = alpha
-		# берем следующее число
-		alpha = alpha * 2
-		# проверяем, что мы не выходим за рамки q 
-		if alpha > res.shape[0]:
-			alpha = alpha ^ primpoly
-	return res
+    for i in range(1, res.shape[0] + 1):
+        # соответствие десятичного числа со степенью элемента
+        res[alpha - 1, 0] = i
+        # соответвие степени элемента с десятичным числом
+        res[i - 1, 1] = alpha
+        # берем следующее число
+        alpha = alpha * 2
+        # проверяем, что мы не выходим за рамки q
+        if alpha > res.shape[0]:
+            alpha = alpha ^ primpoly
+    return res
+
 
 # поэлементный xor
 def add(X, Y):
-	return X^Y
+    return X ^ Y
+
 
 # xor всех векторов по оси x или y
-def sum(X, axis=0):
-	# матрица результата, заполненная предварительно нулями
-	res = np.zeros((X.shape[abs(axis-1)]), dtype=np.int)
-	# пробегаем по всем векторам
-	for i in range(X.shape[axis]):
-		# складываем вектора с помощью уже написанной функции add()
-		if axis == 0:
-			res = add(res, X[i, :])
-		if axis == 1:
-			res = add(res, X[:, i])
-	return res
+def sum(X, axis = 0):
+    # матрица результата, заполненная предварительно нулями
+    res = np.zeros((X.shape[abs(axis - 1)]), dtype = np.int)
+    # пробегаем по всем векторам
+    for i in range(X.shape[axis]):
+        # складываем вектора с помощью уже написанной функции add()
+        if axis == 0:
+            res = add(res, X[i, :])
+        if axis == 1:
+            res = add(res, X[:, i])
+    return res
+
 
 def prod(X, Y, pm):
-	# по десятичным числам из матрицы X опеределяем степень многочлена
-	# с помощью матрицы соответствий десятичных чисел и степеней pm
-	k1_arr = pm[X - 1, 0]
-	# тоже самое для Y
-	k2_arr = pm[Y - 1, 0]
-	# произведение двух элементов поля a^k1 и a^k2 равно
-	# a^((k1 + k2) mod (2^q - 1))
-	# в res_pow записываем (k1 + k2) mod (2^q - 1)
-	res_pow = (k1_arr + k2_arr) % (pm.shape[0])
-	# по матрице pm переводим степень многочлена в десятичное число
-	res = pm[res_pow - 1, 1]
-	# для нулевых значений результат также нулевой
-	res[X == 0] = 0
-	res[Y == 0] = 0
-	return res
+    # по десятичным числам из матрицы X опеределяем степень многочлена
+    # с помощью матрицы соответствий десятичных чисел и степеней pm
+    k1_arr = pm[X - 1, 0]
+    # тоже самое для Y
+    k2_arr = pm[Y - 1, 0]
+    # произведение двух элементов поля a^k1 и a^k2 равно
+    # a^((k1 + k2) mod (2^q - 1))
+    # в res_pow записываем (k1 + k2) mod (2^q - 1)
+    res_pow = (k1_arr + k2_arr) % (pm.shape[0])
+    # по матрице pm переводим степень многочлена в десятичное число
+    res = pm[res_pow - 1, 1]
+    # для нулевых значений результат также нулевой
+    res[X == 0] = 0
+    res[Y == 0] = 0
+    return res
+
 
 def divide(X, Y, pm):
-	# по десятичным числам из матрицы X опеределяем степень многочлена
-	# с помощью матрицы соответствий десятичных чисел и степеней pm
-	k1_arr = pm[X - 1, 0]
-	# тоже самое для Y
-	k2_arr = pm[Y - 1, 0]
-	# частное двух элементов поля a^k1 и a^k2 равно
-	# a^((k1 - k2) mod (2^q - 1))
-	# в res_pow записываем (k1 - k2) mod (2^q - 1)
-	res_pow = (k1_arr - k2_arr) % (pm.shape[0])
-	# по матрице pm переводим степень многочлена в десятичное число
-	res = pm[res_pow - 1, 1]
-	# для нулевых делимых результат также нулевой
-	res[X == 0] = 0
-	return res
+    # по десятичным числам из матрицы X опеределяем степень многочлена
+    # с помощью матрицы соответствий десятичных чисел и степеней pm
+    k1_arr = pm[X - 1, 0]
+    # тоже самое для Y
+    k2_arr = pm[Y - 1, 0]
+    # частное двух элементов поля a^k1 и a^k2 равно
+    # a^((k1 - k2) mod (2^q - 1))
+    # в res_pow записываем (k1 - k2) mod (2^q - 1)
+    res_pow = (k1_arr - k2_arr) % (pm.shape[0])
+    # по матрице pm переводим степень многочлена в десятичное число
+    res = pm[res_pow - 1, 1]
+    # для нулевых делимых результат также нулевой
+    res[X == 0] = 0
+    return res
+
 
 def linsolve(A, b, pm):
-    A = np.copy(A)
-    b = np.copy(b)
-    # Gauss-like method
-    # Forward:
-    for j in range(A.shape[0]):
-        nz_col_idx = np.nonzero(A[j:, j])[0] + j
-        if nz_col_idx.size == 0:
+    # размеры матрицы A|b
+    n = A.shape[0]
+    m = A.shape[1] + 1
+    # получаем матрицу A|b путем присоединения вектора b к матрице A
+    Ab = np.concatenate((A, b.reshape(-1, 1)), axis = 1)
+    # метод Гаусса
+    # прямой ход
+    for i in range(n):
+        print(Ab)
+        nonzero_ind = np.nonzero(Ab[i:, i])[0] + i
+        if nonzero_ind.size == 0:
             return np.nan
-        # Division:
-        b[nz_col_idx] = divide(b[nz_col_idx], A[nz_col_idx, j], pm)
-        A[nz_col_idx, :] = divide(A[nz_col_idx, :], 
-                                  np.tile(A[nz_col_idx, j].reshape(-1, 1), A.shape[1]), pm)
-        # Subtracting:
-        for i in nz_col_idx[1:]:
-            A[i, :] = add(A[i, :], A[nz_col_idx[0], :])
-            b[i] = add(b[i], b[nz_col_idx[0]])
-        # Swapping:
-        if nz_col_idx[0] > j:
-            tmp_row = A[j, :].copy()
-            A[j, :] = A[nz_col_idx[0], :].copy()
-            A[nz_col_idx[0], :] = tmp_row.copy()
-            tmp = b[j].copy()
-            b[j] = b[nz_col_idx[0]].copy()
-            b[nz_col_idx[0]] = tmp.copy()
-    # Backward:
-    x = np.zeros(b.size, dtype=int)
-    for i in range(b.size - 1, -1, -1):
-        x[i] = add(b[i], sum(prod(x[(i + 1):], A[i, (i + 1):], pm).reshape(-1, 1))).copy()
-    return x.astype(int)
+        Ab[nonzero_ind, :] = divide(Ab[nonzero_ind, :], np.tile(Ab[nonzero_ind, i].reshape(-1, 1), m), pm)
+        for j in nonzero_ind[1:]:
+            Ab[j, :] = add(Ab[j, :], Ab[nonzero_ind[0], :])
+        if nonzero_ind[0] > i:
+            Ab[i, :], Ab[nonzero_ind[0], :] = Ab[nonzero_ind[0], :].copy(), Ab[i, :].copy()
+    res = np.zeros(n, dtype = np.int)
+    # обратный ход
+    for i in range(n - 1, -1, -1):
+        res[i] = add(Ab[i, m - 1], sum(prod(res[(i + 1):], Ab[i, (i + 1):n], pm).reshape(-1, 1))).copy()
+    return res
 
+def minpoly(x, pm):
+    # Suppose that x elements are not equal zero
+    root_pows = np.zeros(shape=(pm.shape[0] + 1), dtype=bool)
+    min_poly = np.array([1], dtype=int)
+    # Generate cyclotomic cosets:
+    pow_x = pm[x - 1, 0]
+    root_pows[pow_x] = True
+    prev_roots_number = np.unique(x).size
+    while True:
+        pow_x = 2 * pow_x % pm.shape[0]
+        root_pows[pow_x] = True
+        new_roots_number = np.sum(root_pows)
+        if prev_roots_number == new_roots_number:
+            break
+        prev_roots_number = new_roots_number
+    # Multiply polynomials:
+    root_pows = np.nonzero(root_pows)[0]
+    roots = pm[root_pows - 1, 1]
+    for root in roots:
+        min_poly = polyprod(np.array([1, root]), min_poly, pm)
+    return (min_poly, root_pows)
 
+def polyval(p, x, pm):
+    # метод Горнера
+    res = np.zeros(x.size)
+    for i in range(p.size):
+        if i == 0:
+            res = p[0]
+        else:
+            res = add(prod(res, x, pm), np.array(p[i]))
+    return res
 
+def polyprod(p1, p2, pm):
+    if p1.size < p2.size:
+        p1, p2 = p2.copy(), p1.copy()
+    # заводим вектор для результата
+    res = np.zeros(p1.size + p2.size - 1, dtype=np.int)
+
+    # временный вектор для удобства промежуточных подсчетов
+    tmp = np.zeros(p1.size, dtype=np.int)
+
+    for i in range(-1, -p2.shape[0] - 1, -1):
+        # заполняем весь вектор tmp значением из конца p2
+        tmp[:] = p2[i]
+        # умножаем на вектор p1
+        tmp = prod(tmp, p1, pm)
+        # записываем результат в вектор результата
+        if i == -1:
+            # на первом проходе просто записываем значения
+            res[-tmp.size:] = tmp
+        else:
+            # на последующих суммируем с предыдущими значениями
+            res[-tmp.size + i + 1: i + 1] ^= tmp
+    return res
+
+def polydiv(p1, p2, pm):
+    # q - частное
+    # r - остаток
+    # если делимое меньше делителя, то частное = 0, остаток = делителю
+    if p1.size < p2.size:
+        q = np.array([0], dtype=np.int)
+        r = p1
+    else:
+        # нулевой шаг(инициализация переменных)
+        q = np.empty(p1.size - p2.size + 1, dtype=np.int)
+        r = p1
+        for i in range(q.size):
+            # находим частное
+            q[i] = divide(r[0: 1], p2[0: 1], pm)
+            # умножаем частное на делитель
+            tmp = polyprod(p2, np.array([q[i]]), pm)
+            # находим остаток
+            r = add(r, np.append(tmp, np.zeros(p.shape[0] - tmp.shape[0], dtype=np.int)))[1:]
+    # избавляемся от лишних нулей
+    while r.size != 1 and r[0] == 0:
+        r = r[1:]
+    return (q, r)
+
+#def euclid(p1, p2, pm, max_deg = 0):
 def main():
-	X = np.array([[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-	b = np.array([1, 1, 1])
-	print(linsolve(X, b, gen_pow_matrix(11)))
-
+    x = np.array([1, 5, 4, 3])
+    y = np.array([1, 2, 0, 4, 5])
+    print(polydiv(x, y, gen_pow_matrix(19)))
 if __name__ == "__main__":
-	main()
+    main()
