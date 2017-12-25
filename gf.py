@@ -88,7 +88,6 @@ def linsolve(A, b, pm):
     # метод Гаусса
     # прямой ход
     for i in range(n):
-        print(Ab)
         nonzero_ind = np.nonzero(Ab[i:, i])[0] + i
         if nonzero_ind.size == 0:
             return np.nan
@@ -104,26 +103,21 @@ def linsolve(A, b, pm):
     return res
 
 def minpoly(x, pm):
-    # Suppose that x elements are not equal zero
-    root_pows = np.zeros(shape=(pm.shape[0] + 1), dtype=bool)
-    min_poly = np.array([1], dtype=int)
-    # Generate cyclotomic cosets:
-    pow_x = pm[x - 1, 0]
-    root_pows[pow_x] = True
-    prev_roots_number = np.unique(x).size
-    while True:
-        pow_x = 2 * pow_x % pm.shape[0]
-        root_pows[pow_x] = True
-        new_roots_number = np.sum(root_pows)
-        if prev_roots_number == new_roots_number:
-            break
-        prev_roots_number = new_roots_number
-    # Multiply polynomials:
-    root_pows = np.nonzero(root_pows)[0]
-    roots = pm[root_pows - 1, 1]
+    roots = set()
+    for i in range(x.size):
+        roots |= {x[i]}
+        n_x = x[i]
+        while (True):
+            n_x = int(prod(nparr(n_x), nparr(n_x), pm))
+            if n_x == x[i] or n_x in roots:
+                break
+            roots |= {n_x}
+    roots = np.array(list(roots))
+
+    m_roots = np.array([1])
     for root in roots:
-        min_poly = polyprod(np.array([1, root]), min_poly, pm)
-    return (min_poly, root_pows)
+        m_roots = polyprod(m_roots, np.array([1, root]), pm)
+    return (m_roots, roots)
 
 def polyval(p, x, pm):
     # метод Горнера
@@ -145,7 +139,7 @@ def polyprod(p1, p2, pm):
     tmp = np.zeros(p1.size, dtype=np.int)
 
     for i in range(-1, -p2.shape[0] - 1, -1):
-        # заполняем весь вектор tmp значением из конца p2
+        # заполняем весь вектор tmp значением из p2
         tmp[:] = p2[i]
         # умножаем на вектор p1
         tmp = prod(tmp, p1, pm)
@@ -175,7 +169,7 @@ def polydiv(p1, p2, pm):
             # умножаем частное на делитель
             tmp = polyprod(p2, np.array([q[i]]), pm)
             # находим остаток
-            r = add(r, np.append(tmp, np.zeros(p.shape[0] - tmp.shape[0], dtype=np.int)))[1:]
+            r = add(r, np.append(tmp, np.zeros(r.size - tmp.size, dtype=np.int)))[1:]
     # избавляемся от лишних нулей
     while r.size != 1 and r[0] == 0:
         r = r[1:]
@@ -184,7 +178,6 @@ def polydiv(p1, p2, pm):
 #def euclid(p1, p2, pm, max_deg = 0):
 def main():
     x = np.array([1, 5, 4, 3])
-    y = np.array([1, 2, 0, 4, 5])
-    print(polydiv(x, y, gen_pow_matrix(19)))
+    print(minpoly( x, gen_pow_matrix(11)))
 if __name__ == "__main__":
     main()
