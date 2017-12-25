@@ -103,24 +103,27 @@ def linsolve(A, b, pm):
     return res
 
 def minpoly(x, pm):
-    roots = set()
+    # корни - это все элементы из x; все элементы x, помноженные на себя, итд
+    s = set()
     for i in range(x.size):
-        roots |= {x[i]}
-        n_x = x[i]
-        while (True):
-            n_x = int(prod(nparr(n_x), nparr(n_x), pm))
-            if n_x == x[i] or n_x in roots:
+        s |= {x[i]}
+        tmp = prod(np.array([x[i]]), np.array([x[i]]), pm)
+        while True:
+            if (tmp[0] == x[i]) or (tmp[0] in s):
                 break
-            roots |= {n_x}
-    roots = np.array(list(roots))
+            s |= {tmp[0]}
+            tmp = prod(tmp, tmp, pm)
+    # нам надо вернуть np.array, поэтому приводим set к np.array
+    roots = np.array(list(s))
+    # m - минимальный полином
+    m = polyprod(np.array([1, roots[0]]), np.array([1, roots[1]]), pm)
+    for i in range(2, roots.size):
+        m = polyprod(m, np.array([1, roots[i]]), pm)
 
-    m_roots = np.array([1])
-    for root in roots:
-        m_roots = polyprod(m_roots, np.array([1, root]), pm)
-    return (m_roots, roots)
+    return m, roots
 
 def polyval(p, x, pm):
-    # метод Горнера
+    # схема Горнера
     res = np.zeros(x.size)
     for i in range(p.size):
         if i == 0:
@@ -171,13 +174,9 @@ def polydiv(p1, p2, pm):
             # находим остаток
             r = add(r, np.append(tmp, np.zeros(r.size - tmp.size, dtype=np.int)))[1:]
     # избавляемся от лишних нулей
-    while r.size != 1 and r[0] == 0:
+    while r.size > 1 and r[0] == 0:
         r = r[1:]
-    return (q, r)
-
-#def euclid(p1, p2, pm, max_deg = 0):
-def main():
-    x = np.array([1, 5, 4, 3])
-    print(minpoly( x, gen_pow_matrix(11)))
-if __name__ == "__main__":
-    main()
+    return q, r
+"""
+def euclid(p1, p2, pm, max_deg = 0): 
+"""
