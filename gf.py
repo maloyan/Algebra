@@ -1,5 +1,6 @@
 import numpy as np
-
+#TODO
+#деление на нуль
 
 def gen_pow_matrix(primpoly):
     # q - степень многочлена. Чтобы узнать, надо определить количество
@@ -103,7 +104,7 @@ def linsolve(A, b, pm):
     return res
 
 def minpoly(x, pm):
-    # корни - это все элементы из x; все элементы x, помноженные на себя, итд
+    # корни - это {x, x^2, x^4, ..., x^(2^n)}
     s = set()
     for i in range(x.size):
         s |= {x[i]}
@@ -177,6 +178,58 @@ def polydiv(p1, p2, pm):
     while r.size > 1 and r[0] == 0:
         r = r[1:]
     return q, r
+
+def polyadd(p1, p2):
+    # для удобства вынесли сложение полиномов в отдельную функцию
+    # нам надо завести два массива, заполненных нулями, одинакового размера
+    # размером будет максимальная степень полинома
+    q1 = np.zeros(max(p1.size, p2.size)).astype('int')
+    q2 = np.zeros(max(p1.size, p2.size)).astype('int')
+
+    # заполняем массив нужными значениями из p1, p2
+    # так что недостающие степени будут нулями
+    q1[-p1.shape[0]:] = p1
+    q2[-p2.shape[0]:] = p2
+
+    # сумма это xor
+    res = q1 ^ q2
+
+    # проверяем на непустоту
+    if (np.all(res == 0)):
+        res = np.array([0])
+    # убираем незначащие нули, если надо
+    else:
+        ind = np.where(res != 0)[0][0]
+        res = res[ind:]
+    return res
+
+def euclid(p1, p2, pm, max_deg = 0):
+    # алгоритм Евклида
+    x0 = np.array([1])
+    y0 = np.array([0])
+    x1 = np.array([0])
+    y1 = np.array([1])
+
+    p, q = p1.copy(), p2.copy()
+
+    while ((q.size != 1) and (q[0] != 0)) and (q.size - 1 > max_deg):
+        tmp = q
+        div, q = polydiv(p, q, pm)
+        p = tmp
+
+        polysum = polyadd(x0, polyprod(x1, div, pm))
+        x0, x1 = x1.copy(), polysum
+        polysum = polyadd(y0, polyprod(y1, div, pm))
+        y0, y1 = y1.copy(), polysum
+
+    return q, x1, y1
 """
-def euclid(p1, p2, pm, max_deg = 0): 
+def main():
+    #x = BCH(2, 2)
+    #print(gf.gen_pow_matrix(7))
+    print(euclid(np.array([1, 1, 1, 3]), np.array([1, 0, 0]), gen_pow_matrix(19), 0))
+    #(array([15]), array([14, 10]), array([14,  6]))
+
+if __name__ == "__main__":
+    main()
 """
