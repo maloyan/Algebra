@@ -1,4 +1,5 @@
 import numpy as np
+
 #TODO
 #деление на нуль
 
@@ -193,7 +194,6 @@ def polyadd(p1, p2):
 
     # сумма это xor
     res = q1 ^ q2
-
     # проверяем на непустоту
     if (np.all(res == 0)):
         res = np.array([0])
@@ -223,13 +223,12 @@ def euclid(p1, p2, pm, max_deg = 0):
         y0, y1 = y1.copy(), polysum
 
     return q, x1, y1
-"""
+
 def main():
     #x = BCH(2, 2)
     #print(gf.gen_pow_matrix(7))
-    print(euclid(np.array([1, 1, 1, 3]), np.array([1, 0, 0]), gen_pow_matrix(19), 0))
+    #print(euclid(np.array([1, 1, 1, 3]), np.array([1, 0, 0]), gen_pow_matrix(19), 0))
     #(array([15]), array([14, 10]), array([14,  6]))
-
+    print(polyprod(np.array([1, 0, 0], dtype=int), np.array([0, 0, 1], dtype=int), gen_pow_matrix(19)))
 if __name__ == "__main__":
     main()
-"""
