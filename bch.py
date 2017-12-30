@@ -121,111 +121,67 @@ class BCH():
         return dist
 
 
-def generate_U(msg_cnt, k):
-    U = np.zeros((msg_cnt, k)).astype('int')
+def generate_message(message_number, k):
+    U = np.zeros((message_number, k)).astype('int')
     inds = np.arange(0, k)
-    for i in range(msg_cnt):
-        try:
-            tmp = np.random.choice(inds, k)
-            ind = np.unique(tmp)
-        except:
-            print(np.random.choice(inds, k))
+    for i in range(message_number):
+        tmp = np.random.choice(inds, k)
+        ind = np.unique(tmp)
         U[i, ind] = 1
-
     return U
 
-
-def error_W(V, r):
-    W = np.zeros(V.shape).astype('int')
-    msg_cnt, n = V.shape
+def make_error(V, r):
+    message_number, n = V.shape
     inds = np.arange(0, n)
-    for i in range(msg_cnt):
-        error = np.zeros(n).astype('int')
+    W = np.zeros(V.shape).astype('int')
+    for i in range(message_number):
         ind = np.random.choice(inds, r, replace=False)
+        error = np.zeros(n).astype('int')
         error[ind] = 1
         W[i, :] = V[i, :] ^ error
-
     return W
 
+def check_decoder(V1, V2):
+    message_number, n = V1.shape
+    res = np.zeros(message_number).astype('int')
+    res[np.all(V2 < 0, axis=1)] = -1
+    res[np.all(V1 == V2, axis=1)] = 1
+    return res
+
+def stats(res):
+    message_number = res.size
+    correct = np.where(res == 1)[0].size
+    incorrect = np.where(res == 0)[0].size
+    decode_error = np.where(res == -1)[0].size
+    print("correct", correct / message_number,
+          "incorrect", incorrect / message_number,
+          "decode error", decode_error / message_number)
+    return 0
+"""
 def main():
-    """
-    U = np.array([[1, 0, 1, 1, 1, 0],
-                  [1, 1, 1, 0, 0, 1],
-                  [0, 0, 1, 1, 1, 1],
-                  [1, 0, 1, 0, 1, 0]])
-    #print(x.encode(U))
-
-
-    W = np.array([[1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0],
-                  [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0],
-                  [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0],
-                  [0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0],
-                  [0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0]])
-    x = BCH(15, 2)
-    U = np.array([[0, 1, 1, 0, 1],
-                  [1, 0, 1, 0, 1],
-                  [0, 1, 0, 0, 1],
-                  [1, 1, 0, 1, 0],
-                  [0, 1, 0, 1, 0]])
-    """
-    n_val = [7, 15, 31, 63, 127]
-    t_val = [1, 2, 4, 8, 11]
-    msg_val = [500, 500, 500, 500, 500]
-    column = ["n", "t", "Euclid decoder, time", "PGZ decoder, time"]
-    for i in range(len(n_val)):
-        msg_cnt = msg_val[i]
-        n = n_val[i]
-        t = t_val[i]
-        row = [n, t]
+    n_arr = [7, 15, 31, 63, 127]
+    t_arr = [1, 2, 4, 8, 11]
+    msg_arr = [10, 50, 100, 200, 200]
+    for i in range(len(n_arr)):
+        n, t, msg = n_arr[i], t_arr[i], msg_arr[i]
         bch_code = BCH(n, t)
         k = n - bch_code.g.size + 1
-        U = generate_U(msg_cnt, k)
-        V = bch_code.encode(U)
-        W = error_W(V, 1)
 
-        start = time.process_time()
-        V_hat = bch_code.decode(W, method='euclid')
-        end = time.process_time()
-        print('euclid', n, t)
-        print(end - start)
+        U = generate_message(msg, k)
+        V1 = bch_code.encode(U)
 
-        start = time.process_time()
-        V_hat = bch_code.decode(W, method='pgz')
-        end = time.process_time()
-        print('pgz', n, t)
-        print(end - start)
+        for r in np.arange(1, t + 1):
+            W = make_error(V1, r)
+            V2 = bch_code.decode(W, method='pgz')
+            res = check_decoder(V1, V2)
+            stats(res)
 
+        r += 1
+        W = make_error(V1, r)
+        V2 = bch_code.decode(W, method='pgz')
+        res = check_decoder(V1, V2)
+        stats(res)
 
-        #table_time = table_time.append(pd.Series(row, index=table_time.columns),ignore_index=True)
-    """
-    start = time.time()
-    x = BCH(31, 9)
-    print(x.decode())
-    end = time.time()
-    print(end - start)
-    """
-    """
-    r_q_t = []
-    for q in range(2, 11): #11
-        n = 2 ** q - 1
-        r_q = []
-        for t in range(1, min(511, (n - 1) // 2 + 5)):
-            x = BCH(n, t)#, prim_list)
-            r_q += [(n - len(x.g) + 1) / n]
-        r_q_t += [r_q]
-
-    print(len(r_q_t))
-
-    q = 3
-    for i in range(1, len(r_q_t[:-1])):
-        plt.figure()
-        n = 2 ** q - 1
-        t = np.arange(1, min(511, (n - 1) // 2 + 5))
-        plt.xlabel("Number of errors, t")
-        plt.ylabel("Code rate, r = k/n")
-        plt.plot(t, r_q_t[i], lw=1)
-        q += 1
-    plt.show()
-    """
 if __name__ == "__main__":
     main()
+"""

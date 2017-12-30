@@ -1,8 +1,5 @@
 import numpy as np
 
-#TODO
-#деление на нуль
-
 def gen_pow_matrix(primpoly):
     # q - степень многочлена. Чтобы узнать, надо определить количество
     # элементов в двоичном представлении числа primpoly
@@ -229,12 +226,3 @@ def euclid(p1, p2, pm, max_deg = 0):
         y0, y1 = y1.copy(), polysum
 
     return q, x1, y1
-
-def main():
-    #x = BCH(2, 2)
-    #print(gf.gen_pow_matrix(7))
-    print(divide(np.array([1, 0, 0], dtype=int), np.array([0, 0, 0], dtype=int), gen_pow_matrix(11)))
-    #(array([15]), array([14, 10]), array([14,  6]))
-    print(polyprod(np.array([1, 0, 0], dtype=int), np.array([0, 0, 1], dtype=int), gen_pow_matrix(19)))
-if __name__ == "__main__":
-    main()
