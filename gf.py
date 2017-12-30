@@ -65,6 +65,10 @@ def prod(X, Y, pm):
 
 
 def divide(X, Y, pm):
+    # проверка деления на нуль
+    if np.sum(Y == 0):
+        print("Деление на нуль")
+        return -1
     # по десятичным числам из матрицы X опеределяем степень многочлена
     # с помощью матрицы соответствий десятичных чисел и степеней pm
     k1_arr = pm[X - 1, 0]
@@ -171,6 +175,8 @@ def polydiv(p1, p2, pm):
         for i in range(q.size):
             # находим частное
             q[i] = divide(r[0: 1], p2[0: 1], pm)
+            if q[i] == -1:
+               return -1
             # умножаем частное на делитель
             tmp = polyprod(p2, np.array([q[i]]), pm)
             # находим остаток
@@ -227,7 +233,7 @@ def euclid(p1, p2, pm, max_deg = 0):
 def main():
     #x = BCH(2, 2)
     #print(gf.gen_pow_matrix(7))
-    #print(euclid(np.array([1, 1, 1, 3]), np.array([1, 0, 0]), gen_pow_matrix(19), 0))
+    print(divide(np.array([1, 0, 0], dtype=int), np.array([0, 0, 0], dtype=int), gen_pow_matrix(11)))
     #(array([15]), array([14, 10]), array([14,  6]))
     print(polyprod(np.array([1, 0, 0], dtype=int), np.array([0, 0, 1], dtype=int), gen_pow_matrix(19)))
 if __name__ == "__main__":
